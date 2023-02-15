@@ -97,44 +97,7 @@ class SGD():
             for key, p in layer.named_parameters():
                 if p.requires_grad:
                     p -= p.grad * lr
-class EG():
-    """
-        Args:
-            max_inf_norm : max infinity norm of grad
-            renorm: \sum{w} = renorm, a real number
-    """
-    def __init__(self, max_inf_norm=None, renorm=None, **kwargs):
-        "required to allow arguments to other mixins"
-        assert max_inf_norm > 0
-        self.max_inf_norm = max_inf_norm
-        self.renorm =renorm
-
-    def update(self, layer, **kwargs):
-        """
-        Args:
-            lr : learning rate
-        Note, to handle negative bias vector we correct the 
-        sign of gradients with the sign of the weights.
-        """
-        lr = kwargs['lr']
-        with torch.no_grad():
-            for key, p in layer.named_parameters():
-                if p.requires_grad:
-                    if self.max_inf_norm is not None:
-                        p.grad = torch.clamp(p.grad, min=-self.max_inf_norm, max=self.max_inf_norm)
-                    p.grad *= torch.sign(p) # removing this only saves a small amount! (Comment from pingsheng: what's this?)
-                    p *= torch.exp(p.grad * -lr)
-                    if self.renorm is not None: p /= (torch.sum(p)/self.renorm)
-
-class CorrectSignsForEGMixin:
-    """not used anymore"""
-    def __init__(self) -> None:
-        pass
-    def update(self, layer, **kwargs):
-        with torch.no_grad():
-            for key, p in layer.named_parameters():
-                if p.requires_grad:
-                    p.grad *= torch.sign(p)
+                    
 # ------------ Dense Layer Specific ------------
 
 class BaseUpdatePolicy():
